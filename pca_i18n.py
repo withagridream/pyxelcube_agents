@@ -199,12 +199,16 @@ MESSAGES: dict[str, dict[str, str]] = {
     "arg_fps": {"ja": "目標 FPS（1〜60）", "en": "Target FPS (1-60)"},
     "arg_seed": {"ja": "乱数の種（省略可）", "en": "Random seed (optional)"},
     "arg_layout": {
-        "ja": "配置（proto: 机3つ / office: 本番に近い配置、席18）",
-        "en": "Layout (proto: 3 desks / office: full office, 18 seats)",
+        "ja": "配置（office: 製品版の配置、席18。既定 / proto: 試作・テスト用の机3つ。--claude は使えない）",
+        "en": "Layout (office: the full office, 18 seats, default / proto: a small prototype with 3 desks for testing; --claude cannot be used)",
+    },
+    "err_claude_needs_office": {
+        "ja": "--claude は --layout office のときだけ使えます",
+        "en": "--claude can only be used with --layout office",
     },
     "arg_agents": {
-        "ja": "人数（proto は1〜3、office は1〜18）",
-        "en": "Number of agents (proto: 1-3, office: 1-18)",
+        "ja": "人数（既定は18。席の数より多いときは席の数にする。office は1〜18、proto は1〜3）",
+        "en": "Number of agents (default 18; capped at the number of seats. office: 1-18, proto: 1-3)",
     },
     "arg_config": {
         "ja": "設定ファイル（省略時は pyxelcube_agents.py と同じフォルダの pyxelcube_agents.toml）",
@@ -215,8 +219,8 @@ MESSAGES: dict[str, dict[str, str]] = {
         "en": "Speed-up factor for destination and talk timers (0 or less means 1.0). Walking speed does not change",
     },
     "arg_claude": {
-        "ja": "本物の Claude Code とつなぐ（office のときだけ。F1 で始業・終業）",
-        "en": "Connect to the real Claude Code (office only. F1 to clock in/out)",
+        "ja": "本物の Claude Code とつなぐ（office の既定。つながずに眺めるだけなら --no-claude。proto では使えない。F1 で始業・終業）",
+        "en": "Connect to the real Claude Code (default for office; use --no-claude to just watch without connecting; not available with proto. F1 to clock in/out)",
     },
     "arg_workdir": {
         "ja": "Claude Code を動かすフォルダ（省略時はこのファイルと同じフォルダの pca_work。例：~/projects/myapp。許可の hook は起動のときに --settings で渡すので、作業フォルダの設定は変えなくてよい）",

@@ -2922,14 +2922,14 @@ docstring に書かれている使い方：
   - `--lang`（"ja" か "en"、既定は `get_lang()`、つまり `--lang` の指定か `detect_lang()` の結果）：表示の言語
   - `--fps`（int、既定 30）：目標 FPS（1〜60）
   - `--seed`（int、既定 None）：乱数の種
-  - `--layout`（"proto" か "office"、既定 "proto"）：配置
-  - `--agents`（int、既定 3）：人数（proto は 1〜3、office は 1〜18。範囲の確認はここでは行わない）
+  - `--layout`（"proto" か "office"、**既定 "office"**）：配置（proto は試作・テスト用の机 3 つ。`--claude` は使えない）
+  - `--agents`（int、**既定 18**）：人数（office は 1〜18、proto は 1〜3）。範囲の確認はここでは行わない。席の数より多いときは `App` が席の数に収める（`App.__init__` の既定の `layout="proto"`・`agents=3` は変わらない）
   - `--config`（str、既定 None）：設定ファイル（省略時は pyxelcube_agents.py と同じフォルダの pyxelcube_agents.toml、とヘルプにある）
   - `--time-scale`（float、既定 `DEFAULT_TIME_SCALE`）：行き先・会話のタイマーの早回し倍率
-  - `--claude`（フラグ）：本物の Claude Code とつなぐ（office のときだけ）
+  - `--claude` / `--no-claude`（`argparse.BooleanOptionalAction`、既定 None）：本物の Claude Code とつなぐか。解釈のあと、None（省略）なら `args.claude = (args.layout == "office")`（office はつなぐ、proto はつながない）。はっきり `--claude` を付けて `--layout` が office 以外なら `parser.error(t("err_claude_needs_office"))` で止まる（標準エラーに文を出して終了コード 2）。`--no-claude` はどの配置でもよい。**決めたあとは必ず True か False**（None で返らない）
   - `--workdir`（str、既定 None）：Claude Code を動かすフォルダ（省略時は pca_work、とヘルプにある）
   - `--session`（str、既定 "pyxelcube_agents"）：tmux のセッション名
-- 各 help 文は文のキー `arg_lang`・`arg_fps`・`arg_seed`・`arg_layout`・`arg_agents`・`arg_config`・`arg_speed`（`--time-scale`）・`arg_claude`・`arg_workdir`・`arg_session` を `t()` に通したもの
+- 各 help 文は文のキー `arg_lang`・`arg_fps`・`arg_seed`・`arg_layout`・`arg_agents`・`arg_config`・`arg_speed`（`--time-scale`）・`arg_claude`・`arg_workdir`・`arg_session` を `t()` に通したもの。エラーの文は `err_claude_needs_office`（ja「--claude は --layout office のときだけ使えます」、en「--claude can only be used with --layout office」）
 - 主な変数：`pre`（`--lang` だけを読む仮の parser）／`pre_args`／`parser`（`argparse.ArgumentParser`。説明は `APP_NAME APP_VERSION`）
 
 #### `main() -> None`（5571 行）

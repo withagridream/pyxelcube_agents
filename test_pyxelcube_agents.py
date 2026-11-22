@@ -291,11 +291,25 @@ def make_app(*args, **kwargs):
         pyxel.init = saved
 
 
-# 12. 引数：既定は proto・3人。office・18人の指定。不正な layout は SystemExit
+# 12. 引数：既定は office・18人。proto は --layout proto で選ぶ。不正な layout は SystemExit
 ns = pyxelcube_agents.parse_args([])
-check(ns.layout == "proto" and ns.agents == 3, f"12: 既定の layout/agents {ns}")
+check(ns.layout == "office" and ns.agents == 18, f"12: 既定の layout/agents（office・18） {ns}")
+ns = pyxelcube_agents.parse_args(["--layout", "proto"])
+check(ns.layout == "proto" and ns.agents == 18, f"12: --layout proto でも人数の既定は 18（App で席の数に収める） {ns}")
 ns = pyxelcube_agents.parse_args(["--layout", "office", "--agents", "18"])
 check(ns.layout == "office" and ns.agents == 18, f"12: office 指定 {ns}")
+ns = pyxelcube_agents.parse_args(["--layout", "proto", "--agents", "3"])
+check(ns.layout == "proto" and ns.agents == 3, f"12: proto・3人の指定 {ns}")
+# --claude/--no-claude：省いたら office は True・proto は False。決めたあとは必ず True か False（None で返らない）
+for argv_, want_ in (([], ("office", 18, True)), (["--no-claude"], ("office", 18, False)), (["--layout", "proto"], ("proto", 18, False)),
+                     (["--layout", "proto", "--no-claude"], ("proto", 18, False)), (["--claude"], ("office", 18, True)),
+                     (["--layout", "office", "--claude"], ("office", 18, True)), (["--layout", "office", "--no-claude"], ("office", 18, False)),
+                     (["--claude", "--no-claude"], ("office", 18, False))):
+    ns = pyxelcube_agents.parse_args(argv_)
+    check((ns.layout, ns.agents, ns.claude) == want_ and ns.claude is not None and isinstance(ns.claude, bool), f"12: parse_args({argv_}) → {want_} {ns}")
+# 人数の既定 18 を proto の App に渡しても、席の数（3）に収まる
+check(len(make_app(30, 1, "proto", 18).agents) == 3, "12: proto に 18 人を頼んでも席の数（3）に収まる")
+check(len(make_app(30, 1, "office", 18).agents) == 18, "12: office 18 人")
 _orig_stderr = sys.stderr
 sys.stderr = open(os.devnull, "w")  # argparse のエラー表示を抑える
 try:
@@ -7072,7 +7086,7 @@ ap_n._shutdown_claude(sleep=lambda s: (_ for _ in ()).throw(AssertionError("slee
 check(True, "134: _shutdown_claude は何もしない")
 # 引数
 ns = pyxelcube_agents.parse_args([])
-check(ns.claude is False and ns.workdir is None and ns.session == "pyxelcube_agents", f"134: 引数の既定 claude=False workdir=None session=pyxelcube_agents {ns}")
+check(ns.claude is True and ns.workdir is None and ns.session == "pyxelcube_agents", f"134: 引数の既定 claude=True（office が既定）workdir=None session=pyxelcube_agents {ns}")
 ns = pyxelcube_agents.parse_args(["--layout", "office", "--claude", "--workdir", "/x/y", "--session", "abc"])
 check(ns.claude is True and ns.workdir == "/x/y" and ns.session == "abc", f"134: --claude --workdir --session {ns}")
 # proto では --claude が無視される（bridge_factory も作業フォルダも使わない）
@@ -10803,6 +10817,31 @@ finally:
     sys.stderr.close()
     sys.stderr = _err_keep
 check(exited, "169: --lang fr は SystemExit")
+set_lang("ja")
+
+# ---------------------------------------------------------------------------
+# 169-c. --claude は office のときだけ：proto との組み合わせは SystemExit(2) で、標準エラーに言語ごとの文が出る
+# ---------------------------------------------------------------------------
+import io
+check("err_claude_needs_office" in MESSAGES, "169: キー err_claude_needs_office が MESSAGES にある（全キーの ja・en・差し込みの確認に入る）")
+for lang_c, want_c in (("ja", "--claude は --layout office のときだけ使えます"), ("en", "--claude can only be used with --layout office")):
+    buf = io.StringIO()
+    _err_keep2 = sys.stderr
+    sys.stderr = buf
+    try:
+        O.parse_args(["--lang", lang_c, "--layout", "proto", "--claude"])
+        code = None
+    except SystemExit as e_:
+        code = e_.code
+    finally:
+        sys.stderr = _err_keep2
+    check(code == 2, f"169: --layout proto --claude（{lang_c}）は SystemExit(2) {code!r}")
+    check(want_c in buf.getvalue() and i18n_t("err_claude_needs_office") == want_c, f"169: 標準エラーに t('err_claude_needs_office') の文（{lang_c}） {buf.getvalue()!r}")
+    # office なら通る
+    check(O.parse_args(["--lang", lang_c, "--layout", "office", "--claude"]).claude is True, f"169: --layout office --claude は通る（{lang_c}）")
+    # --no-claude は proto でもエラーにならない。省いた proto もエラーにならない（False になる）
+    check(O.parse_args(["--lang", lang_c, "--layout", "proto", "--no-claude"]).claude is False, f"169: --layout proto --no-claude は通る（{lang_c}）")
+    check(O.parse_args(["--lang", lang_c, "--layout", "proto"]).claude is False, f"169: --layout proto（--claude を省略）は通って False（{lang_c}）")
 set_lang("ja")
 
 # ---------------------------------------------------------------------------

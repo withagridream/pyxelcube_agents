@@ -2,7 +2,7 @@
 
 [日本語](README.md) | English
 
-A small 3D office built with Pyxel Cube (the 3D feature of Pyxel 3.0). Characters walk around their seats, sit down, and go to destinations (coffee, bookshelf, plants). With `--claude`, it connects to a real Claude Code running inside tmux (a tool that runs several screens in one terminal), and when you type a prompt in the tool's input box, the characters in the office start working.
+A small 3D office built with Pyxel Cube (the 3D feature of Pyxel 3.0). Characters walk around their seats, sit down, and go to destinations (coffee, bookshelf, plants). With the office layout (the default), it connects to a real Claude Code running inside tmux (a tool that runs several screens in one terminal), and when you type a prompt in the tool's input box, the characters in the office start working.
 
 ![Screen of pyxelcube_agents (Japanese display, just after clocking in)](docs/images/pca_image.png)
 
@@ -13,14 +13,15 @@ Version: 0.90
 Be sure to read these before use.
 
 1. **This software runs a real Claude Code.** When you choose "Allow (Y)" or "Always allow (A twice)" in the tool, Claude Code really performs that work (rewriting files, running commands, and so on). Depending on the content, "Always allow" adds a rule to `.claude/settings.local.json` in the work folder, and it stays even after you close the tool.
-2. The values you choose in the `/model` and `/effort` menus are saved in Claude Code's settings as the default for new sessions. While the command window (the window that opens when you send text starting with `/`) is open, keys go to Claude Code as they are. If you change settings with `/config` and similar commands, they really change.
-3. To show the usage limits, each time Claude finishes one reply, the tool sends `/usage` to tmux, reads the screen, and closes it.
-4. The tool reads the text on the tmux screen (`capture-pane`). What appears on the screen (such as the contents of a file) is read by the tool and displayed.
-5. **This tool works by reading the English text on Claude Code's screen.** Examples are `Do you want to` on the permission screen, `Current session` in `/usage`, and `with medium effort` in the status line. With Claude Code 2.1.330, the screen stayed in English even when the language setting or the OS language was set to Japanese (confirmed on the real thing. Only Claude's replies and the description text on the permission screen change). With a version of Claude Code that translates its screen, the permission, usage-limit and model displays may stop working.
-6. `/exit` and `/quit` cannot be sent from the tool's input box. To finish, use F1 to clock out (it has Claude write a handoff memo and then closes). Closing with the window's X also works, but it waits up to 300 seconds for the handoff.
-7. There is only one receiver for permissions per machine. If you open two tools at the same time, the second one cannot receive permissions in the tool (answer in tmux).
-8. This is unofficial software and is not affiliated with Anthropic. Claude and Claude Code are trademarks of Anthropic.
-9. **No warranty. The author takes no responsibility for anything that happens through the use of this software.**
+2. **Started with no arguments, the tool opens in the state connected to Claude Code.** Claude Code starts inside tmux only when you clock in with F1 (it does not start just because the tool is started). To only watch without connecting, add `--no-claude`.
+3. The values you choose in the `/model` and `/effort` menus are saved in Claude Code's settings as the default for new sessions. While the command window (the window that opens when you send text starting with `/`) is open, keys go to Claude Code as they are. If you change settings with `/config` and similar commands, they really change.
+4. To show the usage limits, each time Claude finishes one reply, the tool sends `/usage` to tmux, reads the screen, and closes it.
+5. The tool reads the text on the tmux screen (`capture-pane`). What appears on the screen (such as the contents of a file) is read by the tool and displayed.
+6. **This tool works by reading the English text on Claude Code's screen.** Examples are `Do you want to` on the permission screen, `Current session` in `/usage`, and `with medium effort` in the status line. With Claude Code 2.1.330, the screen stayed in English even when the language setting or the OS language was set to Japanese (confirmed on the real thing. Only Claude's replies and the description text on the permission screen change). With a version of Claude Code that translates its screen, the permission, usage-limit and model displays may stop working.
+7. `/exit` and `/quit` cannot be sent from the tool's input box. To finish, use F1 to clock out (it has Claude write a handoff memo and then closes). Closing with the window's X also works, but it waits up to 300 seconds for the handoff.
+8. There is only one receiver for permissions per machine. If you open two tools at the same time, the second one cannot receive permissions in the tool (answer in tmux).
+9. This is unofficial software and is not affiliated with Anthropic. Claude and Claude Code are trademarks of Anthropic.
+10. **No warranty. The author takes no responsibility for anything that happens through the use of this software.**
 
 ## Requirements
 
@@ -72,7 +73,7 @@ For how to install Claude Code, follow the official instructions.
 
 ```
 cd <repository folder>
-.venv/bin/python pyxelcube_agents.py --layout office --agents 18 --claude
+.venv/bin/python pyxelcube_agents.py
 ```
 
 Claude Code does not run just because the tool is started. When you clock in with the F1 key (or the "[F1] Clock in" button), Claude Code starts in a new tmux session.
@@ -80,10 +81,10 @@ Claude Code does not run just because the tool is started. When you clock in wit
 To change the work folder (default: `<repository folder>/pca_work`):
 
 ```
-.venv/bin/python pyxelcube_agents.py --layout office --agents 18 --claude --workdir <folder>
+.venv/bin/python pyxelcube_agents.py --workdir <folder>
 ```
 
-Without `--claude`, neither tmux nor Claude Code is used and only the visuals run (the Space key switches the characters to the working state one by one).
+Started with no arguments, the tool opens in the state connected to Claude Code; Claude Code starts in tmux only when you clock in with F1, not just by starting the tool. To only watch without connecting, add `--no-claude`: neither tmux nor Claude Code is used and only the visuals run (the Space key switches the characters to the working state one by one).
 
 ### Options
 
@@ -91,18 +92,18 @@ Without `--claude`, neither tmux nor Claude Code is used and only the visuals ru
 |---|---|---|
 | `--fps` | 30 | Target FPS (1-60) |
 | `--seed` | none | Random seed (optional) |
-| `--layout` | proto | Layout. `proto`: 3 desks / `office`: full office (18 seats) |
-| `--agents` | 3 | Number of agents. proto: 1-3, office: 1-18 |
+| `--layout` | office | Layout. `office`: full office (18 seats) / `proto`: prototype for testing (3 desks; `--claude` cannot be used) |
+| `--agents` | 18 | Number of agents. Capped at the number of seats (office: 1-18, proto: 1-3) |
 | `--config` | none | Config file. If omitted, `pyxelcube_agents.toml` next to the main program |
 | `--time-scale` | 1.0 | Speed-up factor for destination and talk timers (0 or less means 1.0). Walking speed does not change |
-| `--claude` | off | Connect to the real Claude Code (office only. F1 to clock in/out) |
+| `--claude` / `--no-claude` | if omitted: connected for office, not connected for proto | Connect to the real Claude Code or not. F1 to clock in/out. Explicit `--claude` with proto is an error (`--no-claude` is fine with proto) |
 | `--workdir` | `pca_work` | Folder to run Claude Code in |
 | `--session` | pyxelcube_agents | tmux session name |
 | `--lang` | decided from the environment | Display language (`ja` or `en`) |
 
-`--lang ja` or `--lang en` selects the display language. If omitted, the tool looks at the environment variables `LC_ALL`, `LC_MESSAGES` and `LANG` in this order, takes the first one that is not empty, and uses Japanese if it starts with `ja` and English otherwise. What switches is the on-screen text, the descriptions of the options (`--help`), the request for a handoff memo sent to Claude Code when clocking out, and the reason text returned to Claude Code when you deny a permission. Claude Code's own screen does not switch (Important note 5).
+`--lang ja` or `--lang en` selects the display language. If omitted, the tool looks at the environment variables `LC_ALL`, `LC_MESSAGES` and `LANG` in this order, takes the first one that is not empty, and uses Japanese if it starts with `ja` and English otherwise. What switches is the on-screen text, the descriptions of the options (`--help`), the request for a handoff memo sent to Claude Code when clocking out, and the reason text returned to Claude Code when you deny a permission. Claude Code's own screen does not switch (Important note 6).
 
-`pyxelcube_agents.toml` decides where the usage-limit values are read from when `--claude` is not given. It is not used with `--claude`; the usage limits are read from the `/usage` screen. You do not need to touch it.
+`pyxelcube_agents.toml` decides where the usage-limit values are read from when not connected to Claude Code (`--no-claude`, proto). It is not used when connected (the office default); the usage limits are read from the `/usage` screen. You do not need to touch it.
 
 ## First use
 
@@ -142,7 +143,7 @@ There are two modes. `MODE: WALK` or `MODE: PROMPT` is shown at the top center o
 | Mouse wheel | Zoom (over the history or a dialog, scrolls inside it) |
 | D | Open/close the REST ROOM door |
 | Q | End the talk |
-| 1-4 | Change the usage-limit board values by hand (only without `--claude`) |
+| 1-4 | Change the usage-limit board values by hand (only when not connected to Claude Code) |
 
 In PROMPT, 3D controls such as Space, D, Q and the arrow keys do not work, and the keys are typed into the input box as characters.
 
@@ -184,7 +185,7 @@ A yellow "!" appears above Main's head, your avatar moves next to Main, and the 
   - 1: Continue (connect to that session. The handoff memo is not read)
   - 2: End the previous one and start new
   - 3: Cancel (do nothing and go back to before clocking in)
-- When running two work folders at the same time, give a different name with `--session`. But there is only one receiver for permissions, so the second one answers permissions in tmux (Important note 7).
+- When running two work folders at the same time, give a different name with `--session`. But there is only one receiver for permissions, so the second one answers permissions in tmux (Important note 8).
 - The Japanese input conversion frame stopped appearing: restarting fcitx5 fixed it once (a record from the author's environment).
 - Permission requests do not reach the tool: when the tool is not running, the hook does nothing and the usual permission screen appears in tmux. Also check that `python3` is in PATH.
 

@@ -5810,11 +5810,11 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument(
         "--layout",
         choices=("proto", "office"),
-        default="proto",
+        default="office",
         help=t("arg_layout"),
     )
     parser.add_argument(
-        "--agents", type=int, default=3, help=t("arg_agents")
+        "--agents", type=int, default=18, help=t("arg_agents")
     )
     parser.add_argument(
         "--config",
@@ -5830,7 +5830,8 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     )
     parser.add_argument(
         "--claude",
-        action="store_true",
+        action=argparse.BooleanOptionalAction,
+        default=None,
         help=t("arg_claude"),
     )
     parser.add_argument(
@@ -5845,7 +5846,13 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         default="pyxelcube_agents",
         help=t("arg_session"),
     )
-    return parser.parse_args(argv)
+    args = parser.parse_args(argv)
+    if args.claude is None:
+        # 付けていなければ、office ではつなぐ（proto ではつながない）
+        args.claude = args.layout == "office"
+    elif args.claude and args.layout != "office":
+        parser.error(t("err_claude_needs_office"))
+    return args
 
 
 def main() -> None:
