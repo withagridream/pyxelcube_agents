@@ -1,0 +1,15 @@
+# 仮想環境・キャッシュ
+.venv/
+__pycache__/
+*.pyc
+
+# 実行時に作られるもの（作業フォルダ・テストの一時フォルダ・hook の記録）
+pca_work/
+.test_tmp/
+*.jsonl
+
+# 開発中の控え
+*_before_*.py
+
+# 旧配布用の README（直下の README.md にまとめた）
+dist/

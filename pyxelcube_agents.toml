@@ -1,0 +1,6 @@
+# pyxelcube_agents.py の設定
+[rate_limits]
+# statusline のスクリプトが書き出す JSON の場所（~ はホームに置き換える）
+json_path = "~/.cache/pixel_office/rate_limits.json"
+# JSON を読み直す間隔（秒）
+reload_sec = 3.0
